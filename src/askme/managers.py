@@ -63,7 +63,6 @@ class QuestionsManager:
             print("Invalid input")
             return
 
-        # Find user object
         to_user = None
         for u in users_manager.users.values():
             if u.user_id == to_user_id:
@@ -95,7 +94,7 @@ class QuestionsManager:
 
     def answer_question(self, user: User):
         try:
-            qid = int(input("Enter question ID to answer: "))
+            qid = int(input("Enter question ID to reply to: "))
         except ValueError:
             print("Invalid input")
             return
@@ -104,14 +103,31 @@ class QuestionsManager:
             print("Question not found")
             return
 
-        q = self.questions[qid]
-        if q.to_user != user.user_id:
-            print("You can only answer questions to yourself")
+        parent_q = self.questions[qid]
+
+        if parent_q.to_user != user.user_id:
+            print("You can only reply to questions sent to you")
             return
 
-        ans = input("Enter your answer: ")
-        q.answer = ans
-        print("Answer saved!")
+        text = input("Enter your reply: ")
+
+        self.last_id += 1
+
+        root_id = parent_q.parent_id if parent_q.parent_id != -1 else parent_q.question_id
+
+        reply = Question(
+            question_id=self.last_id,
+            parent_id=root_id,
+            from_user=user.user_id,
+            to_user=parent_q.from_user,
+            is_anonymous=0,
+            question_text=text,
+            answer_text=""
+        )
+
+        self.questions[self.last_id] = reply
+        print("Reply added!")
+
 
     def delete_question(self, user: User):
         try:
@@ -125,12 +141,24 @@ class QuestionsManager:
             return
 
         q = self.questions[qid]
-        if q.to_user != user.user_id:
-            print("You can only delete questions addressed to you")
+
+        if user.user_id not in (q.from_user, q.to_user):
+            print("You can only delete questions you are part of")
             return
 
-        del self.questions[qid]
-        print("Question deleted!")
+
+        root_id = q.parent_id if q.parent_id != -1 else q.question_id
+
+        to_delete = [
+            qid for qid, question in self.questions.items()
+            if question.question_id == root_id or question.parent_id == root_id
+        ]
+
+        for qid in to_delete:
+            del self.questions[qid]
+
+        print(f"Deleted thread with {len(to_delete)} messages!")
+
 
     def list_feed(self):
         """List all answered questions as feed"""
