@@ -42,7 +42,6 @@ class QuestionsManager:
             print("No questions found.")
 
     def print_from_questions(self, user: User):
-        """Print all questions FROM this user"""
         found = False
         for q in self.questions.values():
             if q.from_user == user.user_id:
@@ -55,7 +54,6 @@ class QuestionsManager:
             print("No questions found.")
 
     def ask_question(self, from_user: User, users_manager):
-        """Ask a question to another user"""
         users_manager.list_users()
         try:
             to_user_id = int(input("Enter recipient user ID: "))

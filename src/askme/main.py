@@ -9,7 +9,7 @@ def main():
 
     users_manager.load()
     questions_manager.load()
-
+  
     choice = show_menu(["Login", "Sign Up"])
     if choice == 1:
         username = input("Username: ")
